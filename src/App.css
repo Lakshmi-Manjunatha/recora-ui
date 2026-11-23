@@ -1,0 +1,24 @@
+
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+  padding: 48px;
+  background-color: #f5fafb;
+}
+
+.main-content h1 {
+  color: #193c49;
+  font-size: 36px;
+  margin-top: 0;
+}
+
+.main-content p {
+  color: #647b84;
+  font-size: 16px;
+  line-height: 1.7;
+}
