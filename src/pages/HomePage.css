@@ -1,0 +1,21 @@
+.home-page {
+  width: 100%;
+  padding: 24px 32px;
+}
+
+.home-intro {
+  max-width: 720px;
+}
+
+.home-intro h2 {
+  color: #193c49;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.home-intro p {
+  color: #52717c;
+  font-size: 15px;
+  line-height: 1.7;
+}
