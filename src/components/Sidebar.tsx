@@ -32,6 +32,10 @@ function Sidebar() {
           Insights
         </button>
       </nav>
+      <div className="sidebar-bottom">
+        <strong>🌱 Your everyday, understood.</strong>
+        <p>Keep receipts, shopping insights and important dates in one calm place.</p>
+      </div>
     </aside>
   )
 }
