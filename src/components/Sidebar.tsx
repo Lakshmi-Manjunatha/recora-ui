@@ -1,7 +1,11 @@
 import { ReceiptText } from 'lucide-react'
 import './Sidebar.css'
 
-function Sidebar() {
+interface SidebarProps {
+  onLoginRequired: () => void
+}
+
+function Sidebar({ onLoginRequired }: SidebarProps) {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
@@ -16,19 +20,19 @@ function Sidebar() {
           Home
         </button>
 
-        <button className="nav-item" type="button">
+        <button className="nav-item" type="button" onClick={onLoginRequired}>
           Receipts
         </button>
 
-        <button className="nav-item" type="button">
+        <button className="nav-item" type="button" onClick={onLoginRequired}>
           Ask AI
         </button>
 
-        <button className="nav-item" type="button">
+        <button className="nav-item" type="button" onClick={onLoginRequired}>
           Events
         </button>
 
-        <button className="nav-item" type="button">
+        <button className="nav-item" type="button" onClick={onLoginRequired}>
           Insights
         </button>
       </nav>
