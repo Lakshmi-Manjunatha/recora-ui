@@ -3,7 +3,12 @@ import StatCard from '../components/StatCard'
 import ReceiptPreview from '../components/ReceiptPreview'
 import './HomePage.css'
 
-function HomePage() {
+interface HomePageProps {
+  onLoginClick: () => void
+  onRegisterClick: () => void
+}
+
+function HomePage({ onLoginClick, onRegisterClick }: HomePageProps) {
   return (
     <div className="home-page">
       {/* Welcome section */}
@@ -27,12 +32,7 @@ function HomePage() {
           </p>
         </div>
 
-        <button
-          type="button"
-          className="create-account-btn"
-          disabled
-          title="Account creation coming soon"
-        >
+        <button type="button" className="create-account-btn" onClick={onRegisterClick}>
           Create your account →
         </button>
       </section>
@@ -119,22 +119,24 @@ function HomePage() {
         </div>
       </section>
 
+      {/* Authentication call to action */}
       <section className="home-cta" aria-labelledby="home-cta-title">
         <h2 id="home-cta-title">Ready to make Recora yours?</h2>
 
         <p>Your own receipts and spending appear only after you sign in.</p>
 
         <div className="home-cta-actions">
-          <button type="button" className="home-login-btn" disabled>
+          <button type="button" className="home-login-btn" onClick={onLoginClick}>
             Log in
           </button>
 
-          <button type="button" className="home-register-btn" disabled>
+          <button type="button" className="home-register-btn" onClick={onRegisterClick}>
             Create account
           </button>
         </div>
       </section>
 
+      {/* Footer */}
       <footer className="home-footer">
         <p>
           All numbers and receipts above are illustrative examples. This prototype has no real

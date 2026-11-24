@@ -1,62 +1,77 @@
-import { render, screen, within } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { fireEvent, render, screen } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import Sidebar from './Sidebar'
 
 describe('Sidebar', () => {
-  it('displays the Recora brand name', () => {
-    render(<Sidebar />)
+  const onLoginRequired = vi.fn()
 
-    expect(screen.getByText('Recora')).toBeInTheDocument()
+  const navigationItems = ['Home', 'Receipts', 'Ask AI', 'Events', 'Insights']
+
+  const protectedNavigationItems = ['Receipts', 'Ask AI', 'Events', 'Insights']
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+
+    render(<Sidebar onLoginRequired={onLoginRequired} />)
   })
 
-  it('displays the sidebar navigation', () => {
-    render(<Sidebar />)
+  describe('Sidebar rendering', () => {
+    it('should render the Recora brand', () => {
+      expect(screen.getByText('Recora')).toBeInTheDocument()
+    })
 
-    expect(screen.getByRole('navigation')).toBeInTheDocument()
+    it('should render the navigation section', () => {
+      expect(screen.getByRole('navigation')).toBeInTheDocument()
+    })
+
+    it('should render five navigation buttons', () => {
+      expect(screen.getAllByRole('button')).toHaveLength(5)
+    })
+
+    it.each(navigationItems)('should render the %s navigation button', (navigationItem) => {
+      expect(screen.getByRole('button', { name: navigationItem })).toBeInTheDocument()
+    })
   })
 
-  it('displays all five navigation buttons', () => {
-    render(<Sidebar />)
+  describe('Navigation active state', () => {
+    it('should mark Home as the active navigation item', () => {
+      expect(screen.getByRole('button', { name: 'Home' })).toHaveClass('active')
+    })
 
-    const navigation = screen.getByRole('navigation')
-
-    expect(within(navigation).getAllByRole('button')).toHaveLength(5)
-  })
-  it.each(['Home', 'Receipts', 'Ask AI', 'Events', 'Insights'])(
-    'displays the %s navigation button',
-    (name) => {
-      render(<Sidebar />)
-
-      expect(screen.getByRole('button', { name })).toBeInTheDocument()
-    },
-  )
-
-  it('displays Home as the default active navigation item', () => {
-    render(<Sidebar />)
-
-    expect(screen.getByRole('button', { name: 'Home' })).toHaveClass('active')
+    it.each(protectedNavigationItems)(
+      'should not mark %s as an active navigation item',
+      (navigationItem) => {
+        expect(screen.getByRole('button', { name: navigationItem })).not.toHaveClass('active')
+      },
+    )
   })
 
-  it.each(['Receipts', 'Ask AI', 'Events', 'Insights'])(
-    'displays %s as an inactive navigation item by default',
-    (name) => {
-      render(<Sidebar />)
+  describe('Sidebar bottom section', () => {
+    it('should render the sidebar bottom heading', () => {
+      expect(screen.getByText('🌱 Your everyday, understood.')).toBeInTheDocument()
+    })
 
-      expect(screen.getByRole('button', { name })).not.toHaveClass('active')
-    },
-  )
-
-  it('displays the sidebar information panel heading', () => {
-    render(<Sidebar />)
-
-    expect(screen.getByText('🌱 Your everyday, understood.')).toBeInTheDocument()
+    it('should render the sidebar bottom description', () => {
+      expect(
+        screen.getByText('Keep receipts, shopping insights and important dates in one calm place.'),
+      ).toBeInTheDocument()
+    })
   })
 
-  it('displays the sidebar information panel description', () => {
-    render(<Sidebar />)
+  describe('Login required navigation', () => {
+    it.each(protectedNavigationItems)(
+      'should request login when %s is clicked',
+      (navigationItem) => {
+        fireEvent.click(screen.getByRole('button', { name: navigationItem }))
 
-    expect(
-      screen.getByText('Keep receipts, shopping insights and important dates in one calm place.'),
-    ).toBeInTheDocument()
+        expect(onLoginRequired).toHaveBeenCalledTimes(1)
+      },
+    )
+
+    it('should not request login when Home is clicked', () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Home' }))
+
+      expect(onLoginRequired).not.toHaveBeenCalled()
+    })
   })
 })
