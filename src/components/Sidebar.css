@@ -2,9 +2,11 @@
   width: 240px;
   min-height: 100vh;
   flex-shrink: 0;
-  background-color: #193c49;
+  background-color: #ffffff;
   padding: 28px 16px;
-  color: white;
+  gap: 28px;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar-brand {
@@ -39,19 +41,19 @@
   border: none;
   border-radius: 10px;
   background: transparent;
-  color: #d5e8ed;
+  color: #627d87;
   text-align: left;
   font-size: 15px;
   cursor: pointer;
 }
 
 .nav-item:hover {
-  background-color: #285461;
+  background-color: #edf7f9;
 }
 
 .nav-item.active {
-  background-color: #37899a;
-  color: white;
+  background-color: #e4f3f5;
+  color: #193c49;
   font-weight: 600;
 }
 
@@ -64,4 +66,25 @@
   background-color: #37899a;
   color: white;
   border-radius: 10px;
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+  background: #edf7f9;
+  padding: 18px;
+  border-radius: 18px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #1b3038;
+}
+
+.sidebar-bottom strong {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 700;
+}
+
+.sidebar-bottom p {
+  margin: 0;
+  color: #1b3038;
 }

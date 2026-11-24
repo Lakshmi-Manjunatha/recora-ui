@@ -1,5 +1,6 @@
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
+import HomePage from './pages/HomePage'
 import './App.css'
 
 function App() {
@@ -9,8 +10,7 @@ function App() {
 
       <main className="main-content">
         <Header />
-
-        <p>Your receipts, spending and important purchases — organised in one place.</p>
+        <HomePage />
       </main>
     </div>
   )

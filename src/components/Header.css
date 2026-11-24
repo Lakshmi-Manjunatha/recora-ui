@@ -32,3 +32,13 @@
 .login-button:hover {
   background-color: #37899a;
 }
+
+.header-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #37899a;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
