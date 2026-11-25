@@ -5,15 +5,17 @@ import Sidebar from './Sidebar'
 describe('Sidebar', () => {
   const onLoginRequired = vi.fn()
   const onReceiptsClick = vi.fn()
+  const onInsightsClick = vi.fn()
   const onHomeClick = vi.fn()
 
   const navigationItems = ['Home', 'Receipts', 'Ask AI', 'Insights']
 
-  const protectedNavigationItems = ['Ask AI', 'Insights']
+  const protectedNavigationItems = ['Ask AI']
 
   const defaultProps = {
     onLoginRequired,
     onReceiptsClick,
+    onInsightsClick,
     onHomeClick,
     activePage: 'home' as const,
   }
@@ -168,6 +170,27 @@ describe('Sidebar', () => {
     })
   })
 
+  describe('Insights navigation', () => {
+    it('marks Insights as current when selected', () => {
+      render(<Sidebar {...defaultProps} activePage="insights" />)
+
+      const insights = screen.getByRole('button', { name: 'Insights' })
+      expect(insights).toHaveClass('active')
+      expect(insights).toHaveAttribute('aria-current', 'page')
+      expect(screen.getByRole('button', { name: 'Home' })).not.toHaveClass('active')
+      expect(screen.getByRole('button', { name: 'Receipts' })).not.toHaveClass('active')
+    })
+
+    it('should open Insights through its own navigation handler', () => {
+      render(<Sidebar {...defaultProps} />)
+
+      fireEvent.click(screen.getByRole('button', { name: 'Insights' }))
+
+      expect(onInsightsClick).toHaveBeenCalledTimes(1)
+      expect(onLoginRequired).not.toHaveBeenCalled()
+    })
+  })
+
   describe('Login required navigation', () => {
     beforeEach(() => {
       render(<Sidebar {...defaultProps} />)
@@ -189,6 +212,7 @@ describe('Sidebar', () => {
 
         expect(onHomeClick).not.toHaveBeenCalled()
         expect(onReceiptsClick).not.toHaveBeenCalled()
+        expect(onInsightsClick).not.toHaveBeenCalled()
       },
     )
   })
@@ -200,6 +224,7 @@ describe('Sidebar', () => {
       expect(onHomeClick).not.toHaveBeenCalled()
       expect(onReceiptsClick).not.toHaveBeenCalled()
       expect(onLoginRequired).not.toHaveBeenCalled()
+      expect(onInsightsClick).not.toHaveBeenCalled()
     })
   })
 })

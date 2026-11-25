@@ -4,11 +4,18 @@ import './Sidebar.css'
 interface SidebarProps {
   onLoginRequired: () => void
   onReceiptsClick: () => void
+  onInsightsClick: () => void
   onHomeClick: () => void
-  activePage: 'home' | 'receipts'
+  activePage: 'home' | 'receipts' | 'insights'
 }
 
-function Sidebar({ onLoginRequired, onReceiptsClick, onHomeClick, activePage }: SidebarProps) {
+function Sidebar({
+  onLoginRequired,
+  onReceiptsClick,
+  onInsightsClick,
+  onHomeClick,
+  activePage,
+}: SidebarProps) {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
@@ -51,7 +58,12 @@ function Sidebar({ onLoginRequired, onReceiptsClick, onHomeClick, activePage }: 
 
         */}
 
-        <button className="nav-item" type="button" onClick={onLoginRequired}>
+        <button
+          className={`nav-item ${activePage === 'insights' ? 'active' : ''}`}
+          aria-current={activePage === 'insights' ? 'page' : undefined}
+          type="button"
+          onClick={onInsightsClick}
+        >
           Insights
         </button>
       </nav>
