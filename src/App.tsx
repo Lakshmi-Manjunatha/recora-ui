@@ -3,17 +3,19 @@ import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import HomePage from './pages/HomePage'
 import ReceiptsPage from './pages/ReceiptsPage'
+import InsightsPage from './pages/InsightsPage'
 import LoginModal from './components/auth/LoginModal'
 import RegisterModal from './components/auth/RegisterModal'
 import './App.css'
 
 type AuthModalType = 'login' | 'register' | null
 
-type PageType = 'home' | 'receipts'
+type PageType = 'home' | 'receipts' | 'insights'
 
 const PAGE_NAMES: Record<PageType, string> = {
   home: 'Home',
   receipts: 'Receipts',
+  insights: 'Insights',
 }
 
 function App() {
@@ -41,16 +43,10 @@ function App() {
     setActivePage('home')
   }
 
-  const handleOpenReceipts = () => {
-    if (isAuthenticated) {
-      setActivePage('receipts')
-      return
-    }
-
-    // Allow receipt UI development locally.
-    if (import.meta.env.DEV) {
+  const handleOpenMemberPage = (page: Exclude<PageType, 'home'>) => {
+    if (isAuthenticated || import.meta.env.DEV) {
       setIsAuthenticated(true)
-      setActivePage('receipts')
+      setActivePage(page)
       return
     }
 
@@ -65,11 +61,12 @@ function App() {
   }
 
   return (
-    <div className="app-layout">
+    <div className={activePage === 'insights' ? 'app-layout app-layout--insights' : 'app-layout'}>
       <Sidebar
         activePage={activePage}
         onHomeClick={handleOpenHome}
-        onReceiptsClick={handleOpenReceipts}
+        onReceiptsClick={() => handleOpenMemberPage('receipts')}
+        onInsightsClick={() => handleOpenMemberPage('insights')}
         onLoginRequired={handleOpenLogin}
       />
 
@@ -87,6 +84,7 @@ function App() {
         )}
 
         {activePage === 'receipts' && isAuthenticated && <ReceiptsPage />}
+        {activePage === 'insights' && isAuthenticated && <InsightsPage />}
       </main>
 
       {authModal === 'login' && (
