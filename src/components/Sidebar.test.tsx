@@ -3,17 +3,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import Sidebar from './Sidebar'
 
 describe('Sidebar', () => {
-  const onLoginRequired = vi.fn()
+  const onAskAiClick = vi.fn()
   const onReceiptsClick = vi.fn()
   const onInsightsClick = vi.fn()
   const onHomeClick = vi.fn()
 
   const navigationItems = ['Home', 'Receipts', 'Ask AI', 'Insights']
 
-  const protectedNavigationItems = ['Ask AI']
-
   const defaultProps = {
-    onLoginRequired,
+    onAskAiClick,
     onReceiptsClick,
     onInsightsClick,
     onHomeClick,
@@ -133,10 +131,10 @@ describe('Sidebar', () => {
       expect(onHomeClick).toHaveBeenCalledTimes(1)
     })
 
-    it('should not request login when Home is clicked', () => {
+    it('should not call onAskAiClick when Home is clicked', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Home' }))
 
-      expect(onLoginRequired).not.toHaveBeenCalled()
+      expect(onAskAiClick).not.toHaveBeenCalled()
     })
 
     it('should not call onReceiptsClick when Home is clicked', () => {
@@ -157,10 +155,10 @@ describe('Sidebar', () => {
       expect(onReceiptsClick).toHaveBeenCalledTimes(1)
     })
 
-    it('should not directly request login when Receipts is clicked', () => {
+    it('should not call onAskAiClick when Receipts is clicked', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Receipts' }))
 
-      expect(onLoginRequired).not.toHaveBeenCalled()
+      expect(onAskAiClick).not.toHaveBeenCalled()
     })
 
     it('should not call onHomeClick when Receipts is clicked', () => {
@@ -187,34 +185,29 @@ describe('Sidebar', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Insights' }))
 
       expect(onInsightsClick).toHaveBeenCalledTimes(1)
-      expect(onLoginRequired).not.toHaveBeenCalled()
+      expect(onAskAiClick).not.toHaveBeenCalled()
     })
   })
 
-  describe('Login required navigation', () => {
-    beforeEach(() => {
-      render(<Sidebar {...defaultProps} />)
+  describe('Ask AI navigation', () => {
+    it('marks Ask AI as current when selected', () => {
+      render(<Sidebar {...defaultProps} activePage="ask-ai" />)
+
+      const askAi = screen.getByRole('button', { name: 'Ask AI' })
+      expect(askAi).toHaveClass('active')
+      expect(askAi).toHaveAttribute('aria-current', 'page')
     })
 
-    it.each(protectedNavigationItems)(
-      'should request login when %s is clicked',
-      (navigationItem) => {
-        fireEvent.click(screen.getByRole('button', { name: navigationItem }))
+    it('opens Ask AI through its own navigation handler', () => {
+      render(<Sidebar {...defaultProps} />)
 
-        expect(onLoginRequired).toHaveBeenCalledTimes(1)
-      },
-    )
+      fireEvent.click(screen.getByRole('button', { name: 'Ask AI' }))
 
-    it.each(protectedNavigationItems)(
-      'should not call other navigation handlers when %s is clicked',
-      (navigationItem) => {
-        fireEvent.click(screen.getByRole('button', { name: navigationItem }))
-
-        expect(onHomeClick).not.toHaveBeenCalled()
-        expect(onReceiptsClick).not.toHaveBeenCalled()
-        expect(onInsightsClick).not.toHaveBeenCalled()
-      },
-    )
+      expect(onAskAiClick).toHaveBeenCalledTimes(1)
+      expect(onHomeClick).not.toHaveBeenCalled()
+      expect(onReceiptsClick).not.toHaveBeenCalled()
+      expect(onInsightsClick).not.toHaveBeenCalled()
+    })
   })
 
   describe('Initial rendering behaviour', () => {
@@ -223,7 +216,7 @@ describe('Sidebar', () => {
 
       expect(onHomeClick).not.toHaveBeenCalled()
       expect(onReceiptsClick).not.toHaveBeenCalled()
-      expect(onLoginRequired).not.toHaveBeenCalled()
+      expect(onAskAiClick).not.toHaveBeenCalled()
       expect(onInsightsClick).not.toHaveBeenCalled()
     })
   })

@@ -2,15 +2,15 @@ import { ReceiptText } from 'lucide-react'
 import './Sidebar.css'
 
 interface SidebarProps {
-  onLoginRequired: () => void
+  onAskAiClick: () => void
   onReceiptsClick: () => void
   onInsightsClick: () => void
   onHomeClick: () => void
-  activePage: 'home' | 'receipts' | 'insights'
+  activePage: 'home' | 'receipts' | 'insights' | 'ask-ai'
 }
 
 function Sidebar({
-  onLoginRequired,
+  onAskAiClick,
   onReceiptsClick,
   onInsightsClick,
   onHomeClick,
@@ -42,7 +42,12 @@ function Sidebar({
           Receipts
         </button>
 
-        <button className="nav-item" type="button" onClick={onLoginRequired}>
+        <button
+          className={`nav-item ${activePage === 'ask-ai' ? 'active' : ''}`}
+          aria-current={activePage === 'ask-ai' ? 'page' : undefined}
+          type="button"
+          onClick={onAskAiClick}
+        >
           Ask AI
         </button>
 

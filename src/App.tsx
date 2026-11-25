@@ -4,21 +4,28 @@ import Header from './components/Header'
 import HomePage from './pages/HomePage'
 import ReceiptsPage from './pages/ReceiptsPage'
 import InsightsPage from './pages/InsightsPage'
+import AskAiPage from './pages/AskAiPage'
 import LoginModal from './components/auth/LoginModal'
 import RegisterModal from './components/auth/RegisterModal'
+import type { AskAiRequestHandler } from './types/askAi'
 import './App.css'
 
 type AuthModalType = 'login' | 'register' | null
 
-type PageType = 'home' | 'receipts' | 'insights'
+type PageType = 'home' | 'receipts' | 'insights' | 'ask-ai'
 
 const PAGE_NAMES: Record<PageType, string> = {
   home: 'Home',
   receipts: 'Receipts',
   insights: 'Insights',
+  'ask-ai': 'Ask AI',
 }
 
-function App() {
+interface AppProps {
+  onAskAi?: AskAiRequestHandler
+}
+
+function App({ onAskAi }: AppProps) {
   const [authModal, setAuthModal] = useState<AuthModalType>(null)
 
   const [activePage, setActivePage] = useState<PageType>('home')
@@ -61,13 +68,13 @@ function App() {
   }
 
   return (
-    <div className={activePage === 'insights' ? 'app-layout app-layout--insights' : 'app-layout'}>
+    <div className={`app-layout app-layout--${activePage}`}>
       <Sidebar
         activePage={activePage}
         onHomeClick={handleOpenHome}
         onReceiptsClick={() => handleOpenMemberPage('receipts')}
         onInsightsClick={() => handleOpenMemberPage('insights')}
-        onLoginRequired={handleOpenLogin}
+        onAskAiClick={() => handleOpenMemberPage('ask-ai')}
       />
 
       <main className="main-content">
@@ -85,6 +92,7 @@ function App() {
 
         {activePage === 'receipts' && isAuthenticated && <ReceiptsPage />}
         {activePage === 'insights' && isAuthenticated && <InsightsPage />}
+        {isAuthenticated && <AskAiPage hidden={activePage !== 'ask-ai'} onRequest={onAskAi} />}
       </main>
 
       {authModal === 'login' && (
