@@ -3,9 +3,12 @@ import './Sidebar.css'
 
 interface SidebarProps {
   onLoginRequired: () => void
+  onReceiptsClick: () => void
+  onHomeClick: () => void
+  activePage: 'home' | 'receipts'
 }
 
-function Sidebar({ onLoginRequired }: SidebarProps) {
+function Sidebar({ onLoginRequired, onReceiptsClick, onHomeClick, activePage }: SidebarProps) {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
@@ -16,11 +19,19 @@ function Sidebar({ onLoginRequired }: SidebarProps) {
       </div>
 
       <nav className="sidebar-nav">
-        <button className="nav-item active" type="button">
+        <button
+          className={`nav-item ${activePage === 'home' ? 'active' : ''}`}
+          type="button"
+          onClick={onHomeClick}
+        >
           Home
         </button>
 
-        <button className="nav-item" type="button" onClick={onLoginRequired}>
+        <button
+          className={`nav-item ${activePage === 'receipts' ? 'active' : ''}`}
+          type="button"
+          onClick={onReceiptsClick}
+        >
           Receipts
         </button>
 
@@ -28,14 +39,23 @@ function Sidebar({ onLoginRequired }: SidebarProps) {
           Ask AI
         </button>
 
-        <button className="nav-item" type="button" onClick={onLoginRequired}>
+        {/* Events feature deferred until after cloud deployment.
+
+        <button
+          className="nav-item"
+          type="button"
+          disabled
+        >
           Events
         </button>
+
+        */}
 
         <button className="nav-item" type="button" onClick={onLoginRequired}>
           Insights
         </button>
       </nav>
+
       <div className="sidebar-bottom">
         <strong>🌱 Your everyday, understood.</strong>
         <p>Keep receipts, shopping insights and important dates in one calm place.</p>
