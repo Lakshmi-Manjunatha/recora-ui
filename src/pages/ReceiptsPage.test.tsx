@@ -8,12 +8,12 @@ describe('ReceiptsPage', () => {
   const openUploadModal = async (user: ReturnType<typeof userEvent.setup>) => {
     await user.click(
       screen.getByRole('button', {
-        name: 'Upload receipt',
+        name: 'Upload receipts',
       }),
     )
 
     return screen.getByRole('dialog', {
-      name: 'Upload receipt',
+      name: 'Upload receipts',
     })
   }
 
@@ -49,7 +49,7 @@ describe('ReceiptsPage', () => {
 
     expect(
       screen.getByRole('button', {
-        name: 'Upload receipt',
+        name: 'Upload receipts',
       }),
     ).toBeEnabled()
   })
@@ -146,7 +146,7 @@ describe('ReceiptsPage', () => {
 
     expect(
       screen.getByRole('dialog', {
-        name: 'Upload receipt',
+        name: 'Upload receipts',
       }),
     ).toBeInTheDocument()
   })
@@ -604,651 +604,97 @@ describe('ReceiptsPage', () => {
     expect(dialog).toBeInTheDocument()
   })
 
-  // Upload receipt modal
+  // Upload receipt integration
 
-  it('opens the upload receipt modal', async () => {
+  it('opens the multiple upload modal', async () => {
     const user = userEvent.setup()
-
     render(<ReceiptsPage receipts={testReceipts} />)
-
     const dialog = await openUploadModal(user)
-
-    expect(dialog).toBeInTheDocument()
-
-    expect(within(dialog).getByLabelText('Choose a receipt')).toBeInTheDocument()
+    expect(within(dialog).getByLabelText('Choose receipts')).toHaveAttribute('multiple')
   })
 
-  it('closes the upload modal when Cancel is clicked', async () => {
+  it('closes and resets the upload modal on cancellation', async () => {
     const user = userEvent.setup()
-
-    render(<ReceiptsPage receipts={testReceipts} />)
-
+    const onUpload = vi.fn().mockResolvedValue(undefined)
+    render(<ReceiptsPage receipts={testReceipts} onUpload={onUpload} />)
     const dialog = await openUploadModal(user)
-
-    await user.click(
-      within(dialog).getByRole('button', {
-        name: 'Cancel',
-      }),
-    )
-
+    const file = new File(['receipt'], 'receipt.pdf', { type: 'application/pdf' })
+    await user.upload(within(dialog).getByLabelText('Choose receipts'), file)
+    await user.click(within(dialog).getByRole('checkbox', { name: 'Keep original receipt files' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+    expect(onUpload).not.toHaveBeenCalled()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-  })
-
-  it('does not display a close button in the upload modal header', async () => {
-    const user = userEvent.setup()
-
-    render(<ReceiptsPage receipts={testReceipts} />)
-
-    const dialog = await openUploadModal(user)
-
+    const reopened = await openUploadModal(user)
+    expect(within(reopened).queryByText('receipt.pdf')).not.toBeInTheDocument()
     expect(
-      within(dialog).queryByRole('button', {
-        name: 'Close upload modal',
-      }),
-    ).not.toBeInTheDocument()
+      within(reopened).getByRole('checkbox', { name: 'Keep original receipt files' }),
+    ).toBeChecked()
   })
 
-  it('does not display development-related messages', async () => {
+  it.each([true, false])(
+    'forwards multiple files with keepOriginalFiles=%s',
+    async (keepOriginalFiles) => {
+      const user = userEvent.setup()
+      const onUpload = vi.fn().mockResolvedValue(undefined)
+      render(<ReceiptsPage receipts={testReceipts} onUpload={onUpload} />)
+      const dialog = await openUploadModal(user)
+      const files = [
+        new File(['receipt'], 'tesco.pdf', { type: 'application/pdf' }),
+        new File(['receipt'], 'boots.png', { type: 'image/png' }),
+      ]
+      await user.upload(within(dialog).getByLabelText('Choose receipts'), files)
+      if (!keepOriginalFiles) {
+        await user.click(
+          within(dialog).getByRole('checkbox', { name: 'Keep original receipt files' }),
+        )
+      }
+      expect(onUpload).not.toHaveBeenCalled()
+      await user.click(within(dialog).getByRole('button', { name: 'Upload 2 receipts' }))
+      expect(onUpload).toHaveBeenCalledTimes(1)
+      expect(onUpload).toHaveBeenCalledWith({ files, keepOriginalFiles })
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      })
+    },
+  )
+
+  // Original receipt integration
+
+  it('shows when an original receipt is unavailable', async () => {
     const user = userEvent.setup()
-
-    render(<ReceiptsPage receipts={testReceipts} />)
-
-    const dialog = await openUploadModal(user)
-
-    expect(within(dialog).queryByText(/Only synthetic or test receipts/)).not.toBeInTheDocument()
-
-    expect(
-      within(dialog).queryByText(/Uploading will be enabled when the backend is connected/),
-    ).not.toBeInTheDocument()
+    render(<ReceiptsPage receipts={[{ ...testReceipts[0], originalReceipt: null }]} />)
+    const dialog = await openReceiptDetails(user)
+    expect(within(dialog).getByText('Original receipt is not available.')).toBeInTheDocument()
+    expect(within(dialog).queryByRole('button', { name: 'Download' })).not.toBeInTheDocument()
   })
 
-  it('disables upload when no file is selected', async () => {
+  it('forwards original receipt view and download callbacks', async () => {
     const user = userEvent.setup()
-    const onUpload = vi.fn().mockResolvedValue(undefined)
-
-    render(<ReceiptsPage receipts={testReceipts} onUpload={onUpload} />)
-
-    const dialog = await openUploadModal(user)
-
-    expect(
-      within(dialog).getByRole('button', {
-        name: 'Upload receipt',
-      }),
-    ).toBeDisabled()
-  })
-
-  it('disables upload when no upload handler is provided', async () => {
-    const user = userEvent.setup()
-
-    render(<ReceiptsPage receipts={testReceipts} />)
-
-    const dialog = await openUploadModal(user)
-
-    const file = new File(['receipt'], 'receipt.pdf', {
-      type: 'application/pdf',
-    })
-
-    await user.upload(within(dialog).getByLabelText('Choose a receipt'), file)
-
-    expect(within(dialog).getByText('receipt.pdf')).toBeInTheDocument()
-
-    expect(
-      within(dialog).getByRole('button', {
-        name: 'Upload receipt',
-      }),
-    ).toBeDisabled()
-  })
-
-  // File validation
-
-  it.each([
-    ['receipt.pdf', 'application/pdf'],
-    ['receipt.jpg', 'image/jpeg'],
-    ['receipt.jpeg', 'image/jpeg'],
-    ['receipt.png', 'image/png'],
-  ])('accepts a valid file: %s', async (fileName, fileType) => {
-    const user = userEvent.setup()
-    const onUpload = vi.fn().mockResolvedValue(undefined)
-
-    render(<ReceiptsPage receipts={testReceipts} onUpload={onUpload} />)
-
-    const dialog = await openUploadModal(user)
-
-    const file = new File(['receipt'], fileName, {
-      type: fileType,
-    })
-
-    await user.upload(within(dialog).getByLabelText('Choose a receipt'), file)
-
-    expect(within(dialog).getByText(fileName)).toBeInTheDocument()
-
-    expect(
-      within(dialog).getByRole('button', {
-        name: 'Upload receipt',
-      }),
-    ).toBeEnabled()
-  })
-
-  it('rejects unsupported file types', async () => {
-    const user = userEvent.setup({
-      applyAccept: false,
-    })
-
-    const onUpload = vi.fn().mockResolvedValue(undefined)
-
-    render(<ReceiptsPage receipts={testReceipts} onUpload={onUpload} />)
-
-    const dialog = await openUploadModal(user)
-
-    const file = new File(['invalid file'], 'receipt.txt', {
-      type: 'text/plain',
-    })
-
-    await user.upload(within(dialog).getByLabelText('Choose a receipt'), file)
-
-    expect(within(dialog).getByRole('alert')).toHaveTextContent(
-      'Please select a PDF, JPEG or PNG file.',
+    const onViewOriginal = vi.fn()
+    const onDownloadOriginal = vi.fn()
+    const receipt = {
+      ...testReceipts[0],
+      originalReceipt: {
+        fileName: 'tesco.pdf',
+        contentType: 'application/pdf',
+        sizeInBytes: 245 * 1024,
+      },
+    }
+    render(
+      <ReceiptsPage
+        receipts={[receipt]}
+        onViewOriginal={onViewOriginal}
+        onDownloadOriginal={onDownloadOriginal}
+      />,
     )
-
-    expect(
-      within(dialog).getByRole('button', {
-        name: 'Upload receipt',
-      }),
-    ).toBeDisabled()
-  })
-
-  it('rejects an empty file', async () => {
-    const user = userEvent.setup()
-
-    render(<ReceiptsPage receipts={testReceipts} />)
-
-    const dialog = await openUploadModal(user)
-
-    const file = new File([], 'empty.pdf', {
-      type: 'application/pdf',
-    })
-
-    await user.upload(within(dialog).getByLabelText('Choose a receipt'), file)
-
-    expect(within(dialog).getByRole('alert')).toHaveTextContent('The selected file is empty.')
-  })
-
-  it('rejects files larger than 10 MB', async () => {
-    const user = userEvent.setup()
-
-    render(<ReceiptsPage receipts={testReceipts} />)
-
-    const dialog = await openUploadModal(user)
-
-    const file = new File([new Uint8Array(10 * 1024 * 1024 + 1)], 'large-receipt.pdf', {
-      type: 'application/pdf',
-    })
-
-    await user.upload(within(dialog).getByLabelText('Choose a receipt'), file)
-
-    expect(within(dialog).getByRole('alert')).toHaveTextContent(
-      'The file size must not exceed 10 MB.',
-    )
-  })
-
-  it('accepts a file exactly 10 MB in size', async () => {
-    const user = userEvent.setup()
-    const onUpload = vi.fn().mockResolvedValue(undefined)
-
-    render(<ReceiptsPage receipts={testReceipts} onUpload={onUpload} />)
-
-    const dialog = await openUploadModal(user)
-
-    const file = new File([new Uint8Array(10 * 1024 * 1024)], 'receipt.pdf', {
-      type: 'application/pdf',
-    })
-
-    await user.upload(within(dialog).getByLabelText('Choose a receipt'), file)
-
-    expect(within(dialog).queryByRole('alert')).not.toBeInTheDocument()
-
-    expect(
-      within(dialog).getByRole('button', {
-        name: 'Upload receipt',
-      }),
-    ).toBeEnabled()
-  })
-
-  // Remove selected file
-
-  it('does not display the remove button before selecting a file', async () => {
-    const user = userEvent.setup()
-
-    render(<ReceiptsPage receipts={testReceipts} />)
-
-    const dialog = await openUploadModal(user)
-
-    expect(
-      within(dialog).queryByRole('button', {
-        name: 'Remove selected file',
-      }),
-    ).not.toBeInTheDocument()
-  })
-
-  it('displays the remove button after selecting a file', async () => {
-    const user = userEvent.setup()
-
-    render(<ReceiptsPage receipts={testReceipts} />)
-
-    const dialog = await openUploadModal(user)
-
-    await user.upload(
-      within(dialog).getByLabelText('Choose a receipt'),
-      new File(['receipt'], 'receipt.pdf', {
-        type: 'application/pdf',
-      }),
-    )
-
-    expect(
-      within(dialog).getByRole('button', {
-        name: 'Remove selected file',
-      }),
-    ).toBeEnabled()
-
-    expect(within(dialog).getByText('Ready to upload')).toBeInTheDocument()
-  })
-
-  it('removes the selected file when remove is clicked', async () => {
-    const user = userEvent.setup()
-
-    render(<ReceiptsPage receipts={testReceipts} />)
-
-    const dialog = await openUploadModal(user)
-
-    const fileInput = within(dialog).getByLabelText('Choose a receipt') as HTMLInputElement
-
-    const file = new File(['receipt'], 'receipt.pdf', {
-      type: 'application/pdf',
-    })
-
-    await user.upload(fileInput, file)
-
-    await user.click(
-      within(dialog).getByRole('button', {
-        name: 'Remove selected file',
-      }),
-    )
-
-    expect(within(dialog).queryByText('receipt.pdf')).not.toBeInTheDocument()
-
-    expect(fileInput.files).toHaveLength(0)
-    expect(fileInput).toHaveValue('')
-
-    expect(
-      within(dialog).queryByRole('button', {
-        name: 'Remove selected file',
-      }),
-    ).not.toBeInTheDocument()
-
-    expect(dialog).toBeInTheDocument()
-  })
-
-  it('disables upload after removing the selected file', async () => {
-    const user = userEvent.setup()
-    const onUpload = vi.fn().mockResolvedValue(undefined)
-
-    render(<ReceiptsPage receipts={testReceipts} onUpload={onUpload} />)
-
-    const dialog = await openUploadModal(user)
-
-    await user.upload(
-      within(dialog).getByLabelText('Choose a receipt'),
-      new File(['receipt'], 'receipt.pdf', {
-        type: 'application/pdf',
-      }),
-    )
-
-    const uploadButton = within(dialog).getByRole('button', {
-      name: 'Upload receipt',
-    })
-
-    expect(uploadButton).toBeEnabled()
-
-    await user.click(
-      within(dialog).getByRole('button', {
-        name: 'Remove selected file',
-      }),
-    )
-
-    expect(uploadButton).toBeDisabled()
-    expect(onUpload).not.toHaveBeenCalled()
-  })
-
-  it('allows the same file to be selected again after removal', async () => {
-    const user = userEvent.setup()
-
-    render(<ReceiptsPage receipts={testReceipts} />)
-
-    const dialog = await openUploadModal(user)
-
-    const fileInput = within(dialog).getByLabelText('Choose a receipt')
-
-    const file = new File(['receipt'], 'receipt.pdf', {
-      type: 'application/pdf',
-    })
-
-    await user.upload(fileInput, file)
-
-    await user.click(
-      within(dialog).getByRole('button', {
-        name: 'Remove selected file',
-      }),
-    )
-
-    await user.upload(fileInput, file)
-
-    expect(within(dialog).getByText('receipt.pdf')).toBeInTheDocument()
-
-    expect(
-      within(dialog).getByRole('button', {
-        name: 'Remove selected file',
-      }),
-    ).toBeEnabled()
-  })
-
-  it('allows another file to be selected after removal', async () => {
-    const user = userEvent.setup()
-
-    render(<ReceiptsPage receipts={testReceipts} />)
-
-    const dialog = await openUploadModal(user)
-
-    const fileInput = within(dialog).getByLabelText('Choose a receipt')
-
-    const firstFile = new File(['receipt'], 'tesco.pdf', {
-      type: 'application/pdf',
-    })
-
-    const secondFile = new File(['receipt'], 'boots.png', {
-      type: 'image/png',
-    })
-
-    await user.upload(fileInput, firstFile)
-
-    await user.click(
-      within(dialog).getByRole('button', {
-        name: 'Remove selected file',
-      }),
-    )
-
-    await user.upload(fileInput, secondFile)
-
-    expect(within(dialog).queryByText('tesco.pdf')).not.toBeInTheDocument()
-
-    expect(within(dialog).getByText('boots.png')).toBeInTheDocument()
-  })
-
-  it('clears the selected file when the modal is cancelled', async () => {
-    const user = userEvent.setup()
-
-    render(<ReceiptsPage receipts={testReceipts} />)
-
-    const dialog = await openUploadModal(user)
-
-    await user.upload(
-      within(dialog).getByLabelText('Choose a receipt'),
-      new File(['receipt'], 'receipt.pdf', {
-        type: 'application/pdf',
-      }),
-    )
-
-    await user.click(
-      within(dialog).getByRole('button', {
-        name: 'Cancel',
-      }),
-    )
-
-    const reopenedDialog = await openUploadModal(user)
-
-    expect(within(reopenedDialog).queryByText('receipt.pdf')).not.toBeInTheDocument()
-
-    expect(
-      within(reopenedDialog).queryByRole('button', {
-        name: 'Remove selected file',
-      }),
-    ).not.toBeInTheDocument()
-  })
-
-  // Upload submission
-
-  it('calls the upload handler with the selected file', async () => {
-    const user = userEvent.setup()
-    const onUpload = vi.fn().mockResolvedValue(undefined)
-
-    render(<ReceiptsPage receipts={testReceipts} onUpload={onUpload} />)
-
-    const dialog = await openUploadModal(user)
-
-    const file = new File(['receipt'], 'receipt.pdf', {
-      type: 'application/pdf',
-    })
-
-    await user.upload(within(dialog).getByLabelText('Choose a receipt'), file)
-
-    expect(onUpload).not.toHaveBeenCalled()
-
-    await user.click(
-      within(dialog).getByRole('button', {
-        name: 'Upload receipt',
-      }),
-    )
-
-    expect(onUpload).toHaveBeenCalledTimes(1)
-    expect(onUpload).toHaveBeenCalledWith(file)
-
-    await waitFor(() => {
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    })
-  })
-
-  it('does not upload a file when Cancel is clicked', async () => {
-    const user = userEvent.setup()
-    const onUpload = vi.fn().mockResolvedValue(undefined)
-
-    render(<ReceiptsPage receipts={testReceipts} onUpload={onUpload} />)
-
-    const dialog = await openUploadModal(user)
-
-    await user.upload(
-      within(dialog).getByLabelText('Choose a receipt'),
-      new File(['receipt'], 'receipt.pdf', {
-        type: 'application/pdf',
-      }),
-    )
-
-    await user.click(
-      within(dialog).getByRole('button', {
-        name: 'Cancel',
-      }),
-    )
-
-    expect(onUpload).not.toHaveBeenCalled()
-
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-  })
-
-  it('disables file removal and cancellation while uploading', async () => {
-    const user = userEvent.setup()
-
-    let resolveUpload!: () => void
-
-    const uploadPromise = new Promise<void>((resolve) => {
-      resolveUpload = resolve
-    })
-
-    const onUpload = vi.fn().mockReturnValue(uploadPromise)
-
-    render(<ReceiptsPage receipts={testReceipts} onUpload={onUpload} />)
-
-    const dialog = await openUploadModal(user)
-
-    await user.upload(
-      within(dialog).getByLabelText('Choose a receipt'),
-      new File(['receipt'], 'receipt.pdf', {
-        type: 'application/pdf',
-      }),
-    )
-
-    await user.click(
-      within(dialog).getByRole('button', {
-        name: 'Upload receipt',
-      }),
-    )
-
-    expect(
-      within(dialog).getByRole('button', {
-        name: 'Uploading...',
-      }),
-    ).toBeDisabled()
-
-    expect(
-      within(dialog).getByRole('button', {
-        name: 'Remove selected file',
-      }),
-    ).toBeDisabled()
-
-    expect(
-      within(dialog).getByRole('button', {
-        name: 'Cancel',
-      }),
-    ).toBeDisabled()
-
-    expect(within(dialog).getByLabelText('Choose a receipt')).toBeDisabled()
-
-    resolveUpload()
-
-    await waitFor(() => {
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    })
-  })
-
-  it('displays an error when uploading fails', async () => {
-    const user = userEvent.setup()
-
-    const onUpload = vi.fn().mockRejectedValue(new Error('Upload failed'))
-
-    render(<ReceiptsPage receipts={testReceipts} onUpload={onUpload} />)
-
-    const dialog = await openUploadModal(user)
-
-    await user.upload(
-      within(dialog).getByLabelText('Choose a receipt'),
-      new File(['receipt'], 'receipt.pdf', {
-        type: 'application/pdf',
-      }),
-    )
-
-    await user.click(
-      within(dialog).getByRole('button', {
-        name: 'Upload receipt',
-      }),
-    )
-
-    expect(await within(dialog).findByRole('alert')).toHaveTextContent(
-      'Unable to upload the receipt. Please try again.',
-    )
-
-    expect(dialog).toBeInTheDocument()
-
-    expect(within(dialog).getByText('receipt.pdf')).toBeInTheDocument()
-
-    expect(
-      within(dialog).getByRole('button', {
-        name: 'Upload receipt',
-      }),
-    ).toBeEnabled()
-
-    expect(
-      within(dialog).getByRole('button', {
-        name: 'Remove selected file',
-      }),
-    ).toBeEnabled()
-  })
-
-  it('clears the upload error when the selected file is removed', async () => {
-    const user = userEvent.setup()
-
-    const onUpload = vi.fn().mockRejectedValue(new Error('Upload failed'))
-
-    render(<ReceiptsPage receipts={testReceipts} onUpload={onUpload} />)
-
-    const dialog = await openUploadModal(user)
-
-    await user.upload(
-      within(dialog).getByLabelText('Choose a receipt'),
-      new File(['receipt'], 'receipt.pdf', {
-        type: 'application/pdf',
-      }),
-    )
-
-    await user.click(
-      within(dialog).getByRole('button', {
-        name: 'Upload receipt',
-      }),
-    )
-
-    expect(await within(dialog).findByRole('alert')).toBeInTheDocument()
-
-    await user.click(
-      within(dialog).getByRole('button', {
-        name: 'Remove selected file',
-      }),
-    )
-
-    expect(within(dialog).queryByRole('alert')).not.toBeInTheDocument()
-
-    expect(within(dialog).queryByText('receipt.pdf')).not.toBeInTheDocument()
-
-    expect(
-      within(dialog).getByRole('button', {
-        name: 'Upload receipt',
-      }),
-    ).toBeDisabled()
-  })
-
-  it('allows the user to retry a failed upload', async () => {
-    const user = userEvent.setup()
-
-    const onUpload = vi
-      .fn()
-      .mockRejectedValueOnce(new Error('Upload failed'))
-      .mockResolvedValueOnce(undefined)
-
-    render(<ReceiptsPage receipts={testReceipts} onUpload={onUpload} />)
-
-    const dialog = await openUploadModal(user)
-
-    const file = new File(['receipt'], 'receipt.pdf', {
-      type: 'application/pdf',
-    })
-
-    await user.upload(within(dialog).getByLabelText('Choose a receipt'), file)
-
-    await user.click(
-      within(dialog).getByRole('button', {
-        name: 'Upload receipt',
-      }),
-    )
-
-    expect(await within(dialog).findByRole('alert')).toBeInTheDocument()
-
-    await user.click(
-      within(dialog).getByRole('button', {
-        name: 'Upload receipt',
-      }),
-    )
-
-    expect(onUpload).toHaveBeenCalledTimes(2)
-    expect(onUpload).toHaveBeenNthCalledWith(1, file)
-    expect(onUpload).toHaveBeenNthCalledWith(2, file)
-
-    await waitFor(() => {
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    })
+    const dialog = await openReceiptDetails(user)
+    expect(within(dialog).getByText('tesco.pdf')).toBeInTheDocument()
+    await user.click(within(dialog).getByRole('button', { name: 'View original' }))
+    expect(onViewOriginal).toHaveBeenCalledTimes(1)
+    expect(onViewOriginal).toHaveBeenCalledWith(receipt.id)
+    expect(onDownloadOriginal).not.toHaveBeenCalled()
+    await user.click(within(dialog).getByRole('button', { name: 'Download' }))
+    expect(onDownloadOriginal).toHaveBeenCalledTimes(1)
+    expect(onDownloadOriginal).toHaveBeenCalledWith(receipt.id)
   })
 })

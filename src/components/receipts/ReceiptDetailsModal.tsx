@@ -4,6 +4,7 @@ import { ReceiptText, X } from 'lucide-react'
 import { formatAmount, formatReceiptDate } from '../../types/receipt'
 
 import type { Receipt } from '../../types/receipt'
+import OriginalReceiptActions from './OriginalReceiptActions'
 import './ReceiptModals.css'
 
 interface ReceiptDetailsModalProps {
@@ -11,9 +12,18 @@ interface ReceiptDetailsModalProps {
   onClose: () => void
   onEdit?: (receipt: Receipt) => void
   onDelete?: (receipt: Receipt) => Promise<void>
+  onViewOriginal?: (receiptId: string) => void
+  onDownloadOriginal?: (receiptId: string) => void
 }
 
-function ReceiptDetailsModal({ receipt, onClose, onEdit, onDelete }: ReceiptDetailsModalProps) {
+function ReceiptDetailsModal({
+  receipt,
+  onClose,
+  onEdit,
+  onDelete,
+  onViewOriginal,
+  onDownloadOriginal,
+}: ReceiptDetailsModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -107,6 +117,13 @@ function ReceiptDetailsModal({ receipt, onClose, onEdit, onDelete }: ReceiptDeta
         <span>Total amount</span>
         <strong>{formatAmount(receipt.totalAmount)}</strong>
       </div>
+
+      <OriginalReceiptActions
+        receipt={receipt}
+        onViewOriginal={onViewOriginal}
+        onDownloadOriginal={onDownloadOriginal}
+        disabled={isDeleting}
+      />
 
       {error && (
         <p className="receipt-modal-error" role="alert">

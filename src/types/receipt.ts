@@ -16,6 +16,7 @@ export interface Receipt {
   totalAmount: number
   currency: 'GBP'
   items: ReceiptItem[]
+  originalReceipt?: OriginalReceipt | null
 }
 
 export const RECEIPT_CATEGORIES: ReceiptCategory[] = [
@@ -42,4 +43,10 @@ export function formatReceiptDate(date: string): string {
     year: 'numeric',
     timeZone: 'UTC',
   }).format(new Date(date))
+}
+
+export interface OriginalReceipt {
+  fileName: string
+  contentType: string
+  sizeInBytes: number
 }

@@ -6,15 +6,18 @@ import { formatAmount, formatReceiptDate, RECEIPT_CATEGORIES } from '../types/re
 import type { Receipt } from '../types/receipt'
 import ReceiptDetailsModal from '../components/receipts/ReceiptDetailsModal'
 import UploadReceiptModal from '../components/receipts/UploadReceiptModal'
+import type { ReceiptUploadHandler } from '../types/receiptUpload'
 import './ReceiptsPage.css'
 
 interface ReceiptsPageProps {
   receipts?: Receipt[]
   isLoading?: boolean
   error?: string | null
-  onUpload?: (file: File) => Promise<void>
+  onUpload?: ReceiptUploadHandler
   onEdit?: (receipt: Receipt) => void
   onDelete?: (receipt: Receipt) => Promise<void>
+  onViewOriginal?: (receiptId: string) => void
+  onDownloadOriginal?: (receiptId: string) => void
 }
 
 type SortOption = 'newest' | 'oldest' | 'highest' | 'lowest'
@@ -26,6 +29,8 @@ function ReceiptsPage({
   onUpload,
   onEdit,
   onDelete,
+  onViewOriginal,
+  onDownloadOriginal,
 }: ReceiptsPageProps) {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('all')
@@ -112,7 +117,7 @@ function ReceiptsPage({
           onClick={() => setShowUploadModal(true)}
         >
           <Upload size={18} aria-hidden="true" />
-          Upload receipt
+          Upload receipts
         </button>
       </div>
 
@@ -275,6 +280,8 @@ function ReceiptsPage({
           onClose={() => setSelectedReceiptId(null)}
           onEdit={onEdit}
           onDelete={onDelete}
+          onViewOriginal={onViewOriginal}
+          onDownloadOriginal={onDownloadOriginal}
         />
       )}
 
