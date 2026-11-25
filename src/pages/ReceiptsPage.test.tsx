@@ -452,21 +452,21 @@ describe('ReceiptsPage', () => {
 
   // Edit receipt
 
-  it('disables edit when no edit handler is provided', async () => {
+  it('opens the edit form but disables saving when no edit handler is provided', async () => {
     const user = userEvent.setup()
 
     render(<ReceiptsPage receipts={testReceipts} />)
 
     const dialog = await openReceiptDetails(user)
 
-    expect(
-      within(dialog).getByRole('button', {
-        name: 'Edit receipt',
-      }),
-    ).toBeDisabled()
+    await user.click(within(dialog).getByRole('button', { name: 'Edit receipt' }))
+
+    const editor = screen.getByRole('dialog', { name: 'Edit receipt' })
+    expect(within(editor).getByLabelText('Merchant name')).toHaveValue('Tesco')
+    expect(within(editor).getByRole('button', { name: 'Save changes' })).toBeDisabled()
   })
 
-  it('calls the edit handler with the selected receipt', async () => {
+  it('passes the corrected receipt to the edit handler only on save', async () => {
     const user = userEvent.setup()
     const onEdit = vi.fn()
 
@@ -480,10 +480,38 @@ describe('ReceiptsPage', () => {
       }),
     )
 
-    expect(onEdit).toHaveBeenCalledTimes(1)
-    expect(onEdit).toHaveBeenCalledWith(testReceipts[0])
+    const editor = screen.getByRole('dialog', { name: 'Edit receipt' })
+    expect(screen.queryByRole('dialog', { name: 'Receipt details' })).not.toBeInTheDocument()
+    expect(onEdit).not.toHaveBeenCalled()
+    const merchant = within(editor).getByLabelText('Merchant name')
+    await user.clear(merchant)
+    await user.type(merchant, 'Tesco Express')
+    await user.click(within(editor).getByRole('button', { name: 'Save changes' }))
 
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(onEdit).toHaveBeenCalledExactlyOnceWith({
+      ...testReceipts[0],
+      merchant: 'Tesco Express',
+    })
+    expect(screen.queryByRole('dialog', { name: 'Edit receipt' })).not.toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: 'Receipt details' })).toBeInTheDocument()
+  })
+
+  it('discards the draft on cancel and reopens details for the selected receipt', async () => {
+    const user = userEvent.setup()
+    const onEdit = vi.fn()
+    render(<ReceiptsPage receipts={testReceipts} onEdit={onEdit} />)
+
+    const details = await openReceiptDetails(user)
+    await user.click(within(details).getByRole('button', { name: 'Edit receipt' }))
+    const editor = screen.getByRole('dialog', { name: 'Edit receipt' })
+    await user.clear(within(editor).getByLabelText('Merchant name'))
+    await user.click(within(editor).getByRole('button', { name: 'Cancel' }))
+
+    const reopenedDetails = screen.getByRole('dialog', { name: 'Receipt details' })
+    expect(within(reopenedDetails).getByRole('heading', { name: 'Tesco' })).toBeInTheDocument()
+    await user.click(within(reopenedDetails).getByRole('button', { name: 'Edit receipt' }))
+    expect(screen.getByLabelText('Merchant name')).toHaveValue('Tesco')
+    expect(onEdit).not.toHaveBeenCalled()
   })
 
   // Delete receipt

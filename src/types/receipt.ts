@@ -19,6 +19,8 @@ export interface Receipt {
   originalReceipt?: OriginalReceipt | null
 }
 
+export type ReceiptSaveHandler = (receipt: Receipt) => void | Promise<void>
+
 export const RECEIPT_CATEGORIES: ReceiptCategory[] = [
   'Groceries',
   'Personal care',

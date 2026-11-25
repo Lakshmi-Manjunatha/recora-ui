@@ -8,6 +8,7 @@ import AskAiPage from './pages/AskAiPage'
 import LoginModal from './components/auth/LoginModal'
 import RegisterModal from './components/auth/RegisterModal'
 import type { AskAiRequestHandler } from './types/askAi'
+import type { Receipt, ReceiptSaveHandler } from './types/receipt'
 import './App.css'
 
 type AuthModalType = 'login' | 'register' | null
@@ -23,9 +24,11 @@ const PAGE_NAMES: Record<PageType, string> = {
 
 interface AppProps {
   onAskAi?: AskAiRequestHandler
+  receipts?: Receipt[]
+  onEditReceipt?: ReceiptSaveHandler
 }
 
-function App({ onAskAi }: AppProps) {
+function App({ onAskAi, receipts, onEditReceipt }: AppProps) {
   const [authModal, setAuthModal] = useState<AuthModalType>(null)
 
   const [activePage, setActivePage] = useState<PageType>('home')
@@ -90,8 +93,10 @@ function App({ onAskAi }: AppProps) {
           <HomePage onLoginClick={handleOpenLogin} onRegisterClick={handleOpenRegister} />
         )}
 
-        {activePage === 'receipts' && isAuthenticated && <ReceiptsPage />}
-        {activePage === 'insights' && isAuthenticated && <InsightsPage />}
+        {activePage === 'receipts' && isAuthenticated && (
+          <ReceiptsPage receipts={receipts} onEdit={onEditReceipt} />
+        )}
+        {activePage === 'insights' && isAuthenticated && <InsightsPage receipts={receipts} />}
         {isAuthenticated && <AskAiPage hidden={activePage !== 'ask-ai'} onRequest={onAskAi} />}
       </main>
 
