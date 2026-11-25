@@ -3,6 +3,43 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import type { AskAiRequestHandler } from './types/askAi'
+import type { ReceiptSaveHandler } from './types/receipt'
+import { testReceipts } from './test/fixtures/receipts_test'
+
+describe('Receipt editing', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
+  it('sends edits to the supplied handler and displays the caller’s refreshed receipt data', async () => {
+    vi.stubEnv('DEV', true)
+    const user = userEvent.setup()
+    const original = testReceipts[0]
+    const onEditReceipt = vi.fn<ReceiptSaveHandler>().mockResolvedValue(undefined)
+    const { rerender } = render(<App receipts={[original]} onEditReceipt={onEditReceipt} />)
+
+    await user.click(
+      within(screen.getByRole('navigation')).getByRole('button', { name: 'Receipts' }),
+    )
+    await user.click(screen.getByRole('button', { name: 'View receipt from Tesco' }))
+    await user.click(screen.getByRole('button', { name: 'Edit receipt' }))
+    const merchant = screen.getByLabelText('Merchant name')
+    await user.clear(merchant)
+    await user.type(merchant, 'Tesco Express')
+    await user.click(screen.getByRole('button', { name: 'Save changes' }))
+
+    const updated = { ...original, merchant: 'Tesco Express' }
+    expect(onEditReceipt).toHaveBeenCalledExactlyOnceWith(updated)
+    expect(screen.getByRole('button', { name: 'View receipt from Tesco' })).toBeInTheDocument()
+
+    rerender(<App receipts={[updated]} onEditReceipt={onEditReceipt} />)
+    const details = await screen.findByRole('dialog', { name: 'Receipt details' })
+    expect(within(details).getByRole('heading', { name: 'Tesco Express' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'View receipt from Tesco Express' }),
+    ).toBeInTheDocument()
+  })
+})
 
 describe('Insights navigation', () => {
   afterEach(() => {

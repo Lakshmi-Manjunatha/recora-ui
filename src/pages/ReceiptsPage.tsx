@@ -3,7 +3,8 @@ import { CalendarDays, ChevronRight, ReceiptText, Search, Upload, Wallet } from 
 
 import { formatAmount, formatReceiptDate, RECEIPT_CATEGORIES } from '../types/receipt'
 
-import type { Receipt } from '../types/receipt'
+import type { Receipt, ReceiptSaveHandler } from '../types/receipt'
+import EditReceiptModal from '../components/receipts/EditReceiptModal'
 import ReceiptDetailsModal from '../components/receipts/ReceiptDetailsModal'
 import UploadReceiptModal from '../components/receipts/UploadReceiptModal'
 import type { ReceiptUploadHandler } from '../types/receiptUpload'
@@ -14,7 +15,7 @@ interface ReceiptsPageProps {
   isLoading?: boolean
   error?: string | null
   onUpload?: ReceiptUploadHandler
-  onEdit?: (receipt: Receipt) => void
+  onEdit?: ReceiptSaveHandler
   onDelete?: (receipt: Receipt) => Promise<void>
   onViewOriginal?: (receiptId: string) => void
   onDownloadOriginal?: (receiptId: string) => void
@@ -37,6 +38,7 @@ function ReceiptsPage({
   const [dateFilter, setDateFilter] = useState('all')
   const [sortBy, setSortBy] = useState<SortOption>('newest')
   const [selectedReceiptId, setSelectedReceiptId] = useState<string | null>(null)
+  const [isEditingReceipt, setIsEditingReceipt] = useState(false)
   const [showUploadModal, setShowUploadModal] = useState(false)
 
   const now = new Date()
@@ -274,11 +276,20 @@ function ReceiptsPage({
         </>
       )}
 
-      {selectedReceipt && (
+      {selectedReceipt && isEditingReceipt && (
+        <EditReceiptModal
+          key={selectedReceipt.id}
+          receipt={selectedReceipt}
+          onClose={() => setIsEditingReceipt(false)}
+          onSave={onEdit}
+        />
+      )}
+
+      {selectedReceipt && !isEditingReceipt && (
         <ReceiptDetailsModal
           receipt={selectedReceipt}
           onClose={() => setSelectedReceiptId(null)}
-          onEdit={onEdit}
+          onEdit={() => setIsEditingReceipt(true)}
           onDelete={onDelete}
           onViewOriginal={onViewOriginal}
           onDownloadOriginal={onDownloadOriginal}

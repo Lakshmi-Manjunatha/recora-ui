@@ -161,10 +161,7 @@ function ReceiptDetailsModal({
             className="receipts-secondary-button"
             type="button"
             disabled={!onEdit}
-            onClick={() => {
-              onClose()
-              onEdit?.(receipt)
-            }}
+            onClick={() => onEdit?.(receipt)}
           >
             Edit receipt
           </button>
