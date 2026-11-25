@@ -6,16 +6,19 @@ Recora helps people organise everyday receipts, find past purchases, and underst
 
 Receipts end up in wallets, email inboxes, and camera rolls. That makes it easy to lose track of what you bought, hard to find proof of purchase for a return, and time-consuming to work out how much you spent last month.
 
-Recora brings receipts and spending insights into one place. You can find a purchase by merchant, review what you bought, and see how spending adds up across categories, merchants, and months.
+Recora brings receipts and spending insights into one place. You can find a purchase by merchant, review what you bought, and see how spending adds up across categories, merchants, and months. Ask AI is designed to answer everyday questions about those same receipts, such as “Which supermarket did I spend the most money at?”
 
 ## Features
 
 - **Receipts** shows spending totals and receipt details when data is supplied. Search by merchant or category, filter by category or current month, and sort by date or amount. The upload dialog validates PDF, JPEG, and PNG files.
 - **Insights** shows total spending, current-month spending, average receipt value, and receipt count. Date and category filters update the summaries and the breakdowns by category, month, and merchant. Amounts are calculated in pence and displayed in GBP.
+- **Ask AI** lets you draft a question or choose a suggestion. With a request handler connected, the chat supports follow-up questions, receipt references, retries, and starting a new conversation. The transcript stays in memory and clears on logout or refresh.
 
 ## Backend status
 
 Sign-in and registration are placeholder forms. Receipts and Insights show empty states when no data is supplied. The future Spring Boot integration will provide authentication, saved receipts, receipt uploads, and access to original files. Insights accepts typed receipt data, loading and error states, and optional verified nutrition and retailer pricing data. Test fixtures are used only in automated tests.
+
+Ask AI shows an unavailable message and disables sending until a request handler is connected. The future Spring Boot service will retrieve authorised receipts, generate answers, and validate responses.
 
 ## Local development
 
@@ -26,7 +29,7 @@ npm ci
 npm run dev
 ```
 
-Open the local URL printed by Vite and select **Receipts** or **Insights** in the sidebar. Both pages open directly on the development server. In a production build, signed-out visitors see the sign-in dialog.
+Open the local URL printed by Vite and select **Receipts**, **Insights**, or **Ask AI** in the sidebar. These pages open directly on the development server. In a production build, signed-out visitors see the sign-in dialog.
 
 ## Project commands
 
