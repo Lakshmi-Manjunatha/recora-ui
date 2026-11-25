@@ -1,0 +1,94 @@
+
+.receipt-selected-file {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+    padding: 14px;
+    background: #e4f3f5;
+    border: 1px solid #cce4e9;
+    border-radius: 12px;
+}
+
+.receipt-selected-file > svg {
+    flex-shrink: 0;
+    color: #37899a;
+}
+
+.receipt-selected-file-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 5px;
+    min-width: 0;
+}
+
+.receipt-selected-file-name {
+    color: #193c49;
+    font-size: 13px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.receipt-selected-file-status {
+    color: #52717c;
+    font-size: 12px;
+}
+
+.receipt-remove-file-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    flex-shrink: 0;
+    background: #fff;
+    color: #193c49;
+    border: 1px solid #b8d6dd;
+    border-radius: 50%;
+    cursor: pointer;
+    transition:
+            background-color 0.2s ease,
+            color 0.2s ease,
+            border-color 0.2s ease;
+}
+
+.receipt-remove-file-button:hover:not(:disabled) {
+    background: #fff0f0;
+    color: #a52a2a;
+    border-color: #e8b8b8;
+}
+
+.receipt-remove-file-button:focus-visible {
+    outline: 2px solid #37899a;
+    outline-offset: 3px;
+}
+
+.receipt-remove-file-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .receipt-remove-file-button {
+        transition: none;
+    }
+}
+
+#upload-receipt-title {
+    margin-bottom: 8px;
+}
+
+.receipt-upload-area input[type='file'] {
+    margin-top: 12px;
+}
+
+.receipt-modal[aria-labelledby='upload-receipt-title']
+.receipt-modal-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: 28px;
+    gap: 16px;
+}
