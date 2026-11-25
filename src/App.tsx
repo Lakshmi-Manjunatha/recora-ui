@@ -12,106 +12,92 @@ type AuthModalType = 'login' | 'register' | null
 type PageType = 'home' | 'receipts'
 
 const PAGE_NAMES: Record<PageType, string> = {
-    home: 'Home',
-    receipts: 'Receipts',
+  home: 'Home',
+  receipts: 'Receipts',
 }
 
 function App() {
-    const [authModal, setAuthModal] =
-        useState<AuthModalType>(null)
+  const [authModal, setAuthModal] = useState<AuthModalType>(null)
 
-    const [activePage, setActivePage] =
-        useState<PageType>('home')
+  const [activePage, setActivePage] = useState<PageType>('home')
 
-    const [isAuthenticated, setIsAuthenticated] =
-        useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
-    const [userName, setUserName] = useState('')
+  const [userName, setUserName] = useState('')
 
-    const handleOpenLogin = () => {
-        setAuthModal('login')
+  const handleOpenLogin = () => {
+    setAuthModal('login')
+  }
+
+  const handleOpenRegister = () => {
+    setAuthModal('register')
+  }
+
+  const handleCloseAuth = () => {
+    setAuthModal(null)
+  }
+
+  const handleOpenHome = () => {
+    setActivePage('home')
+  }
+
+  const handleOpenReceipts = () => {
+    if (isAuthenticated) {
+      setActivePage('receipts')
+      return
     }
 
-    const handleOpenRegister = () => {
-        setAuthModal('register')
+    // Allow receipt UI development locally.
+    if (import.meta.env.DEV) {
+      setIsAuthenticated(true)
+      setActivePage('receipts')
+      return
     }
 
-    const handleCloseAuth = () => {
-        setAuthModal(null)
-    }
+    handleOpenLogin()
+  }
 
-    const handleOpenHome = () => {
-        setActivePage('home')
-    }
+  const handleLogout = () => {
+    setIsAuthenticated(false)
+    setUserName('')
+    setActivePage('home')
+    setAuthModal(null)
+  }
 
-    const handleOpenReceipts = () => {
-        if (isAuthenticated) {
-            setActivePage('receipts')
-            return
-        }
+  return (
+    <div className="app-layout">
+      <Sidebar
+        activePage={activePage}
+        onHomeClick={handleOpenHome}
+        onReceiptsClick={handleOpenReceipts}
+        onLoginRequired={handleOpenLogin}
+      />
 
-        // Allow receipt UI development locally.
-        if (import.meta.env.DEV) {
-            setIsAuthenticated(true)
-            setActivePage('receipts')
-            return
-        }
+      <main className="main-content">
+        <Header
+          pageName={PAGE_NAMES[activePage]}
+          isAuthenticated={isAuthenticated}
+          userName={userName}
+          onLoginClick={handleOpenLogin}
+          onLogoutClick={handleLogout}
+        />
 
-        handleOpenLogin()
-    }
+        {activePage === 'home' && (
+          <HomePage onLoginClick={handleOpenLogin} onRegisterClick={handleOpenRegister} />
+        )}
 
-    const handleLogout = () => {
-        setIsAuthenticated(false)
-        setUserName('')
-        setActivePage('home')
-        setAuthModal(null)
-    }
+        {activePage === 'receipts' && isAuthenticated && <ReceiptsPage />}
+      </main>
 
-    return (
-        <div className="app-layout">
-            <Sidebar
-                activePage={activePage}
-                onHomeClick={handleOpenHome}
-                onReceiptsClick={handleOpenReceipts}
-                onLoginRequired={handleOpenLogin}
-            />
+      {authModal === 'login' && (
+        <LoginModal onClose={handleCloseAuth} onRegisterClick={handleOpenRegister} />
+      )}
 
-            <main className="main-content">
-                <Header
-                    pageName={PAGE_NAMES[activePage]}
-                    isAuthenticated={isAuthenticated}
-                    userName={userName}
-                    onLoginClick={handleOpenLogin}
-                    onLogoutClick={handleLogout}
-                />
-
-                {activePage === 'home' && (
-                    <HomePage
-                        onLoginClick={handleOpenLogin}
-                        onRegisterClick={handleOpenRegister}
-                    />
-                )}
-
-                {activePage === 'receipts' && isAuthenticated && (
-                    <ReceiptsPage />
-                )}
-            </main>
-
-            {authModal === 'login' && (
-                <LoginModal
-                    onClose={handleCloseAuth}
-                    onRegisterClick={handleOpenRegister}
-                />
-            )}
-
-            {authModal === 'register' && (
-                <RegisterModal
-                    onClose={handleCloseAuth}
-                    onLoginClick={handleOpenLogin}
-                />
-            )}
-        </div>
-    )
+      {authModal === 'register' && (
+        <RegisterModal onClose={handleCloseAuth} onLoginClick={handleOpenLogin} />
+      )}
+    </div>
+  )
 }
 
 export default App

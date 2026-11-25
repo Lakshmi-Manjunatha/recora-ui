@@ -22,9 +22,7 @@ describe('Header', () => {
   it('renders the header', () => {
     render(<Header {...defaultProps} />)
 
-    expect(
-        screen.getByRole('banner'),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('banner')).toBeInTheDocument()
   })
 
   it.each([
@@ -36,140 +34,75 @@ describe('Header', () => {
     ['Settings', 'RECORA / SETTINGS'],
     ['Dashboard', 'RECORA / DASHBOARD'],
   ])('displays the breadcrumb for %s', (pageName, expected) => {
-    render(
-        <Header {...defaultProps} pageName={pageName} />,
-    )
+    render(<Header {...defaultProps} pageName={pageName} />)
 
-    expect(
-        screen.getByText(expected),
-    ).toBeInTheDocument()
+    expect(screen.getByText(expected)).toBeInTheDocument()
   })
 
   it('updates the breadcrumb when the page changes', () => {
-    const { rerender } = render(
-        <Header {...defaultProps} />,
-    )
+    const { rerender } = render(<Header {...defaultProps} />)
 
-    rerender(
-        <Header {...defaultProps} pageName="Receipts" />,
-    )
+    rerender(<Header {...defaultProps} pageName="Receipts" />)
 
-    expect(
-        screen.getByText('RECORA / RECEIPTS'),
-    ).toBeInTheDocument()
+    expect(screen.getByText('RECORA / RECEIPTS')).toBeInTheDocument()
 
-    expect(
-        screen.queryByText('RECORA / HOME'),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByText('RECORA / HOME')).not.toBeInTheDocument()
   })
 
   it('displays login for unauthenticated users', () => {
     render(<Header {...defaultProps} />)
 
-    expect(
-        screen.getByRole('button', { name: 'Log in' }),
-    ).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Log in' })).toBeEnabled()
   })
 
   it('does not display logout for unauthenticated users', () => {
     render(<Header {...defaultProps} />)
 
-    expect(
-        screen.queryByRole('button', { name: 'Log out' }),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Log out' })).not.toBeInTheDocument()
   })
 
   it('displays logout for authenticated users', () => {
-    render(
-        <Header {...defaultProps} isAuthenticated />,
-    )
+    render(<Header {...defaultProps} isAuthenticated />)
 
-    expect(
-        screen.getByRole('button', { name: 'Log out' }),
-    ).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Log out' })).toBeEnabled()
   })
 
   it('does not display login for authenticated users', () => {
-    render(
-        <Header {...defaultProps} isAuthenticated />,
-    )
+    render(<Header {...defaultProps} isAuthenticated />)
 
-    expect(
-        screen.queryByRole('button', { name: 'Log in' }),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Log in' })).not.toBeInTheDocument()
   })
 
   it('displays the authenticated user name', () => {
-    render(
-        <Header
-            {...defaultProps}
-            isAuthenticated
-            userName="Test User"
-        />,
-    )
+    render(<Header {...defaultProps} isAuthenticated userName="Test User" />)
 
-    expect(
-        screen.getByText('Test User'),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Test User')).toBeInTheDocument()
   })
 
   it('does not display an empty user name', () => {
-    const { container } = render(
-        <Header
-            {...defaultProps}
-            isAuthenticated
-            userName=""
-        />,
-    )
+    const { container } = render(<Header {...defaultProps} isAuthenticated userName="" />)
 
-    expect(
-        container.querySelector('.header-user-name'),
-    ).not.toBeInTheDocument()
+    expect(container.querySelector('.header-user-name')).not.toBeInTheDocument()
   })
 
   it('does not display a whitespace-only user name', () => {
-    const { container } = render(
-        <Header
-            {...defaultProps}
-            isAuthenticated
-            userName="   "
-        />,
-    )
+    const { container } = render(<Header {...defaultProps} isAuthenticated userName="   " />)
 
-    expect(
-        container.querySelector('.header-user-name'),
-    ).not.toBeInTheDocument()
+    expect(container.querySelector('.header-user-name')).not.toBeInTheDocument()
   })
 
   it('does not display the user name when unauthenticated', () => {
-    render(
-        <Header
-            {...defaultProps}
-            userName="Test User"
-        />,
-    )
+    render(<Header {...defaultProps} userName="Test User" />)
 
-    expect(
-        screen.queryByText('Test User'),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByText('Test User')).not.toBeInTheDocument()
   })
 
   it('updates the displayed user name', () => {
-    const { rerender } = render(
-        <Header {...defaultProps} isAuthenticated />,
-    )
+    const { rerender } = render(<Header {...defaultProps} isAuthenticated />)
 
-    rerender(
-        <Header
-            {...defaultProps}
-            isAuthenticated
-            userName="Test User"
-        />,
-    )
+    rerender(<Header {...defaultProps} isAuthenticated userName="Test User" />)
 
-    expect(
-        screen.getByText('Test User'),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Test User')).toBeInTheDocument()
   })
 
   it('calls the login handler when login is clicked', async () => {
@@ -177,9 +110,7 @@ describe('Header', () => {
 
     render(<Header {...defaultProps} />)
 
-    await user.click(
-        screen.getByRole('button', { name: 'Log in' }),
-    )
+    await user.click(screen.getByRole('button', { name: 'Log in' }))
 
     expect(onLoginClick).toHaveBeenCalledTimes(1)
     expect(onLogoutClick).not.toHaveBeenCalled()
@@ -188,13 +119,9 @@ describe('Header', () => {
   it('calls the logout handler when logout is clicked', async () => {
     const user = userEvent.setup()
 
-    render(
-        <Header {...defaultProps} isAuthenticated />,
-    )
+    render(<Header {...defaultProps} isAuthenticated />)
 
-    await user.click(
-        screen.getByRole('button', { name: 'Log out' }),
-    )
+    await user.click(screen.getByRole('button', { name: 'Log out' }))
 
     expect(onLogoutClick).toHaveBeenCalledTimes(1)
     expect(onLoginClick).not.toHaveBeenCalled()
@@ -204,9 +131,9 @@ describe('Header', () => {
     render(<Header {...defaultProps} />)
 
     expect(
-        screen.queryByRole('button', {
-          name: 'Create account',
-        }),
+      screen.queryByRole('button', {
+        name: 'Create account',
+      }),
     ).not.toBeInTheDocument()
   })
 
